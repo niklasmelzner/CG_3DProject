@@ -23,14 +23,15 @@ int windowWidth, windowHeight;
 
 //global variables to handle the MVP matrix
 GLuint VPMatrixID;
-GLuint MMatrixID,VMatrixID;
-glm::mat4 VP,V;
+GLuint MMatrixID, VMatrixID;
+glm::mat4 VP, V;
 
 float curr_x;
 float curr_y;
 float curr_angle;
 
 shared_ptr<SpaceShip> spaceShip;
+shared_ptr<WorldManager> worldManager;
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
