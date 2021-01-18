@@ -1,17 +1,48 @@
 #ifndef GAME_UTILS_H
 #define GAME_UTILS_H
-#include "model.h";
 #include <glm/gtx/rotate_vector.hpp>
 #include <chrono>
 
-#include "tools.h"
-#include "world.h"
+#include "engine/modelLoader.h"
+#include "engine/tools.h"
 #include "gameData.h"
+#include <thread>
 
 using namespace glm;
 using namespace std::chrono;
+using namespace eng;
 
-static shared_ptr<ModelBase> spaceShipModel{ NULL };
+static shared_ptr<ModelBase> projectileModel, spaceShipModel;
+
+void initModels();
+
+float fRandBetween(float start, float end);
+
+inline vec3 randNormVec3() {
+	return normalize(vec3{ fRandBetween(-1,1),fRandBetween(-1,1) ,fRandBetween(-1,1) });
+}
+
+class Asteroid :public WorldObject {
+	shared_ptr<Transformation> resetTransformation;
+	float size;
+	float tSinceBirth{ 0 };
+	bool exploding{ false };
+	shared_ptr<LightSource> lightExplode;
+	vec3 colorExplode{ vec3(1.0, 0.7, 0.2) };
+	float massBeforeExplosion{ 0 };
+public:
+
+	Asteroid(shared_ptr<ModelInstance> model, vec3 pos, float _size);
+
+	void explode();
+
+	void update(float f) override;
+
+};
+
+struct Projectile : public WorldObject {
+	Projectile(vec3 pos, vec3 direction);
+};
 
 class SpaceShip : public WorldObject {
 	vec4 viewDirection{ vec4(1, 0, 0,1) };
@@ -20,128 +51,38 @@ class SpaceShip : public WorldObject {
 	shared_ptr<Transformation> transformation;
 	const float DURATION_TILT{ 500 }, SPEED_Y_MAX{ 15 }, SPEED_Z_MAX{ SPEED_Y_MAX }, SPEED_X{ 20 };
 	tools::AnimatedTiltValue tiltValueY{ DURATION_TILT }, tiltValueZ{ DURATION_TILT };
-public:
-
-	vec4 getViewDirection() {
-		return viewDirection;
-	}
-
-	vec3 getCamPos() {
-		return getLocation() + vec3(cam);
-	}
-
-	vec3 getPos() {
-		return getLocation();
-	}
-
-	SpaceShip() : WorldObject(WO_TYPE_SPACE_SHIP, 10) {
-		if (spaceShipModel == NULL) {
-			spaceShipModel = loadModel(loadOBJ("./models/Starship2/Falcon t45 Rescue ship flyingEdit.obj"));
-			vec3 center{ spaceShipModel->getCenter() };
-			shared_ptr<Transformation> baseTrans{ spaceShipModel->newBaseTransformation() };
-			baseTrans->translate(-center);
-			baseTrans->scale(0.007);
-			baseTrans->rotate(PI / 2, vec3(0, 1, 0));
-			baseTrans->rotate(-0.2, vec3(0, 0, 1));
-		}
-		setModelInstance(make_shared<ModelInstance>(spaceShipModel));
-		setSize(getModel());
-		getModel()->newModelTransformation()->translate(vec3(0, -0.8, 0));
-		transformation = getModel()->newModelTransformation(0);
-
-		setDeletable(false);
-		onCollision([=](int type, shared_ptr<WorldObject> obj) {
-
-			return World::COLL_TYPE_DELETE_OTHER;
-			});
-	}
-
-	void update(float f)override {
-		transformation->reset();
-
-		float prgZ{ tiltValueZ.get() }, prgY{ tiltValueY.get() };
-
-		vec3 speed{ SPEED_X,0,0 };
-		if (prgZ != 0) {
-			prgZ = sin(PI / 2 * prgZ);
-			transformation->rotate(prgZ * PI / 8, vec3(viewDirection));
-			transformation->rotate(-prgZ * PI / 20, vec3(up));
-			speed.z = prgZ * SPEED_Z_MAX;
-		}
-
-		if (prgY != 0) {
-			prgY = sin(PI / 2 * prgY);
-
-			transformation->rotate(prgY * PI / 8, cross(vec3(viewDirection), vec3(up)) * mat3(glm::rotate((float)(-prgZ * PI / 8), vec3(1, 0, 0))));
-			speed.y = prgY * SPEED_Y_MAX;
-		}
-
-		setSpeed(speed);
-
-		tiltValueY.setMoveMode(0);
-		tiltValueZ.setMoveMode(0);
-	}
-
-	void moveZ(int mode) {
-		tiltValueZ.add(mode);
-	}
-
-	void moveY(int mode) {
-		tiltValueY.add(mode);
-	}
-
-	mat4 getView() {
-		vec3 location{ getLocation() };
-		return lookAt(
-			location + vec3(cam),
-			location,
-			vec3(up)
-		);
-	}
-
-};
-
-static float fRandBetween(float start, float end) {
-	if (start > end)return fRandBetween(end, start);
-	return start + rand() % 1000 / 1000.0f * (end - start);
-};
-
-static vec3 randNormVec3() {
-	return normalize(vec3{ fRandBetween(-1,1),fRandBetween(-1,1) ,fRandBetween(-1,1) });
-}
-
-class Asteroid :public WorldObject {
-	shared_ptr<Transformation> resetTransformation, staticTransformation;
-	high_resolution_clock::time_point tBirth{ high_resolution_clock::now() };
-	float size;
+	shared_ptr<Effect> effectDamage{ make_shared<Effect>(0,vec3(1,1,1),vec3(),Effect::STATIC) };
+	int damageCount{0};
+	shared_ptr<LightSource> light{ make_shared<LightSource>(LightSource::TYPE_DOT) }, spotLight{ make_shared<LightSource>(LightSource::TYPE_SPOT) };
+	shared_ptr<LightSource> camLight{ make_shared<LightSource>(LightSource::TYPE_DOT) };
+	bool spaceShipDie{ false };
+	float dieCamLightStrength, dieLightStrength;
+	high_resolution_clock::time_point tDieStart;
 
 public:
-	Asteroid(shared_ptr<ModelInstance> model, vec3 pos, float _size) :
-		WorldObject(WO_TYPE_ASTEROID, model, pos, _size), size(_size) {
-		staticTransformation = model->newModelTransformation();
-		resetTransformation = model->newModelTransformation();
-		resetTransformation->scale(0);
+	
+	SpaceShip();
 
-		float s{ rand() % 20 == 0 ? 10.0f : fRandBetween(0.3f, 3.0f) };
-		setSpeed(s * randNormVec3());
-		setRotationSpeed(fRandBetween(0.0f, 0.25f), randNormVec3());
-	}
+	inline vec4 getViewDirection() { return viewDirection; }
 
-	void update(float f) override {
-		resetTransformation->reset();
-		float prg{ std::min(1.0f,duration_cast<milliseconds>((high_resolution_clock::now() - tBirth)).count() / ASTEROID_DURATION_POPUP) };
-		prg = sin(prg * PI / 2);
+	inline vec3 getCamPos() { return getLocation() + vec3(cam); }
 
-		setSize(prg * size);
+	inline vec3 getPos() { return getLocation(); }
 
-		resetTransformation->scale(prg * size);
-	}
+	inline void moveZ(int mode) { tiltValueZ.add(mode); }
+
+	inline void moveY(int mode) { tiltValueY.add(mode); }
+
+	void update(float f) override;
+
+	mat4 getView();
 
 };
 
 class WorldManager {
 	shared_ptr<World> world;
 	vector<shared_ptr<ModelBase>> asteroidModels{};
+	vector<int> spawnWeights{};
 	int asteroidCount{ 0 };
 	bool initialized{ false };
 
@@ -162,12 +103,11 @@ public:
 	}
 
 	void addAsteroidsInSpace(const Cuboid& oldBounds, const Cuboid& newBounds) {
-		while (asteroidCount < ASTEROID_COUNT)addAsteroidInSpace(oldBounds, newBounds);
+		while (asteroidCount < ASTEROID_COUNT) addAsteroidInSpace(oldBounds, newBounds);
 	}
 
 	void addAsteroidInSpace(const Cuboid& oldBounds, const Cuboid& newBounds) {
 		int directionX{ 0 }, directionY{ 1 }, directionZ{ 2 };
-		//vec4(direction, min, max, weight)
 		vector<vec4> ranges{};
 
 		if (newBounds.p0.x < oldBounds.p0.x)
@@ -207,36 +147,40 @@ public:
 			if (!done) endRange = ranges[ranges.size() - 1];
 
 			vec3 pos;
-			if (endRange[0] == directionX) {
-				pos = { fRandBetween(endRange[1],endRange[2]),fRandBetween(newBounds.p0.y,newBounds.p1.y),fRandBetween(newBounds.p0.z,newBounds.p1.z) };
-			}
-			else if (endRange[0] == directionY) {
-				pos = { fRandBetween(newBounds.p0.x,newBounds.p1.x),fRandBetween(endRange[1],endRange[2]),fRandBetween(newBounds.p0.z,newBounds.p1.z) };
-			}
-			else if (endRange[0] == directionZ) {
-				pos = { fRandBetween(newBounds.p0.x,newBounds.p1.x),fRandBetween(newBounds.p0.y,newBounds.p1.y),fRandBetween(endRange[1],endRange[2]) };
-			}
-			else throw 20;
-
-			createAsteroid(pos);
+			do {
+				if (endRange[0] == directionX) {
+					pos = { fRandBetween(endRange[1],endRange[2]),fRandBetween(newBounds.p0.y,newBounds.p1.y),fRandBetween(newBounds.p0.z,newBounds.p1.z) };
+				}
+				else if (endRange[0] == directionY) {
+					pos = { fRandBetween(newBounds.p0.x,newBounds.p1.x),fRandBetween(endRange[1],endRange[2]),fRandBetween(newBounds.p0.z,newBounds.p1.z) };
+				}
+				else if (endRange[0] == directionZ) {
+					pos = { fRandBetween(newBounds.p0.x,newBounds.p1.x),fRandBetween(newBounds.p0.y,newBounds.p1.y),fRandBetween(endRange[1],endRange[2]) };
+				}
+				else throw 20;
+			} while (!createAsteroid(pos));
 		}
 		else {
-			float fX{ (rand() % 1000) / 999.0f };
-			float fY{ (rand() % 1000) / 999.0f };
-			float fZ{ (rand() % 1000) / 999.0f };
-
-			createAsteroid(vec3(
+			float fX, fY, fZ;
+			do {
+				fX = (rand() % 1000) / 999.0f;
+				fY = (rand() % 1000) / 999.0f;
+				fZ = (rand() % 1000) / 999.0f;
+			} while (!createAsteroid(vec3(
 				newBounds.p0.x + fX * newBounds.size.x,
 				newBounds.p0.y + fY * newBounds.size.y,
 				newBounds.p0.z + fZ * newBounds.size.z
-			));
+			)));
 		}
 	}
 
-	void addAsteroidModel(shared_ptr<ModelBase> asteroidModel) {
+	void addAsteroidModel(shared_ptr<ModelBase> asteroidModel, float spawnWeight) {
 		vec3 size{ asteroidModel->getSize() };
-		asteroidModel->newBaseTransformation()->scale(3.0f / (size.x + size.y + size.z));
+		shared_ptr<Transformation> tr{ asteroidModel->newBaseTransformation() };
+		tr->translate(-asteroidModel->getCenter());
+		tr->scale(1.0f / asteroidModel->getAVGSize());
 		asteroidModels.push_back(asteroidModel);
+		spawnWeights.push_back(spawnWeight);
 	}
 
 	void initAsteroids(Cuboid bounds) {
@@ -253,20 +197,41 @@ public:
 		}
 	}
 
-	void createAsteroid(vec3 pos) {
-		shared_ptr<ModelBase> model{ asteroidModels[rand() % asteroidModels.size()] };
+	high_resolution_clock::time_point tLastUpdate = high_resolution_clock::now();
+
+	int getRandomAsteroidModelIndex() {
+		float weightSum{ 0 };
+		for (float weight : spawnWeights) weightSum += weight;
+		float f = rand() % 1000 / 999.0f * weightSum;
+		for (int i = 0; i < spawnWeights.size(); i++) {
+			if (spawnWeights[i] > f)return i;
+			else f -= spawnWeights[i];
+		}
+
+		return spawnWeights.size() - 1;
+	}
+
+	bool createAsteroid(vec3 pos) {
 
 		float size{ ASTEROID_SIZE_MIN + (rand() % 1000) / 999.0f * (ASTEROID_SIZE_MAX - ASTEROID_SIZE_MIN) };
+
+		if (world->willCollide(pos, size))return false;
+
+		shared_ptr<ModelBase> model{ asteroidModels[getRandomAsteroidModelIndex()] };
 
 		shared_ptr<ModelInstance> modelInstance{ make_shared<ModelInstance>(model) };
 
 		world->add<Asteroid>(modelInstance, pos, size);
 
 		asteroidCount++;
+
+		return true;
 	}
 
-	void update(vec3 center, vec3 camPos) {
-		world->update(center, camPos);
+	void update(long dt, vec3 center, vec3 camPos) {
+
+		world->update(dt, center, camPos);
+
 	}
 
 };

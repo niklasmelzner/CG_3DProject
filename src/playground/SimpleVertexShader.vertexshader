@@ -1,75 +1,40 @@
 #version 420 core
 
-#define MAX_LIGHTS=32
-
-//https://learnopengl.com/Lighting/Materials
-struct Material {
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-};
-//end
+#define MAX_LIGHTS 32
+#define MAX_EFFECTS 5
 
 // Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 vertexPosition_modelspace;
-
-layout(location = 1) in vec3 normalIn;
-
-layout(location = 2) in vec2 texCoordIn;
-
-out vec3 fragPos;
-out vec3 normal;
-out vec3 viewPos;
-out vec3 lightPos;
-flat out float hasTexture;
-out vec3 matAmbient;
-out vec3 matDiffuse;
-out vec3 matSpecular;
-out vec2 uv;
+in vec3 vertexPosition;
+in vec3 normalIn;
+in vec2 texCoordIn;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 VP;
 uniform mat4 M;
 uniform mat4 V;
 uniform mat4 Minv;
-uniform vec4 viewDirection;
 uniform vec3 viewPosIn;
-uniform vec3 lightPosIn;
-uniform int lightSize;
-uniform float hasTextureIn;
-uniform Material material;
 
-//https://learnopengl.com/Lighting/Basic-Lighting
+out vec3 fragPos;
+out vec3 normal;
+out vec3 viewPos;
+out vec2 uv;
 
 void main(){
-	matAmbient=material.ambient;
-	matDiffuse=material.diffuse;
-	matSpecular=material.specular;
 
-	//matAmbient=vec3(0.1,0.1,0.1);
-	//matDiffuse=vec3(0.4,0.4,0.4);
-	//matSpecular=vec3(0,0,0);
+	uv = texCoordIn;
 
-	hasTexture = hasTextureIn;
+	gl_Position =  VP * M * vec4(vertexPosition,1);
 
-	if (hasTexture==1.0){
-		uv=texCoordIn;
-	}
-	
-	lightPos=lightPosIn;
-	//lightPos=vec3(0.0,0.0,0.0);
+	fragPos = vec3(M*vec4(vertexPosition,1));
 
-	gl_Position =  VP * M * vec4(vertexPosition_modelspace,1);
-
-	fragPos=vec3(M*vec4(vertexPosition_modelspace,1));
-
-	mat4 normalMatrix=Minv/*transpose(inverse(M))*/;
+	mat4 normalMatrix=Minv;
 
 	normal = normalize(vec3(normalMatrix * vec4(normalIn,1.0)));
 	
-	fragPos=vec3(M*vec4(vertexPosition_modelspace,1.0));
+	fragPos = vec3(M*vec4(vertexPosition,1.0));
 	
-	viewPos=viewPosIn;
+	viewPos = viewPosIn;
     
 }
 

@@ -59,6 +59,24 @@ add_executable(playground
 	playground/playground.h
 	playground/SimpleFragmentShader.fragmentshader
 	playground/SimpleVertexShader.vertexshader
+	playground/gameData.h
+	playground/gameUtils.h
+	playground/gameUtils.cpp
+	playground/engine/light.h
+	playground/engine/light.cpp
+	playground/engine/loadStl.h
+	playground/engine/model.h
+	playground/engine/model.cpp
+	playground/engine/modelLoader.h
+	playground/engine/modelLoader.cpp
+	playground/engine/parse_stl.h
+	playground/engine/parse_stl.cpp
+	playground/engine/renderer.h
+	playground/engine/renderer.cpp
+	playground/engine/tools.h
+	playground/engine/tools.cpp
+	playground/engine/world.h
+	playground/engine/world.cpp
 	common/shader.cpp
 	common/shader.hpp
 )
@@ -70,6 +88,7 @@ set_target_properties(playground PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_
 create_target_launcher(playground WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/playground/")
 
 SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
+SOURCE_GROUP(engine REGULAR_EXPRESSION ".*/engine/.*" )
 SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )
 
 if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
