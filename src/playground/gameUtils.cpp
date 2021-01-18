@@ -184,7 +184,7 @@ void SpaceShip::update(float f) {
 		camLight->setStrength(dieCamLightStrength * (1 - prg));
 		light->setStrength(dieLightStrength * (1 - prg));
 
-		speed.x *= prg;
+		speed.x *= (1 - prg);
 
 		if (prg == 1.0) die();
 	}

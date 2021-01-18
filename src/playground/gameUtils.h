@@ -52,7 +52,7 @@ class SpaceShip : public WorldObject {
 	const float DURATION_TILT{ 500 }, SPEED_Y_MAX{ 15 }, SPEED_Z_MAX{ SPEED_Y_MAX }, SPEED_X{ 20 };
 	tools::AnimatedTiltValue tiltValueY{ DURATION_TILT }, tiltValueZ{ DURATION_TILT };
 	shared_ptr<Effect> effectDamage{ make_shared<Effect>(0,vec3(1,1,1),vec3(),Effect::STATIC) };
-	int damageCount{0};
+	int damageCount{ 0 };
 	shared_ptr<LightSource> light{ make_shared<LightSource>(LightSource::TYPE_DOT) }, spotLight{ make_shared<LightSource>(LightSource::TYPE_SPOT) };
 	shared_ptr<LightSource> camLight{ make_shared<LightSource>(LightSource::TYPE_DOT) };
 	bool spaceShipDie{ false };
@@ -60,7 +60,7 @@ class SpaceShip : public WorldObject {
 	high_resolution_clock::time_point tDieStart;
 
 public:
-	
+
 	SpaceShip();
 
 	inline vec4 getViewDirection() { return viewDirection; }
@@ -212,6 +212,7 @@ public:
 	}
 
 	bool createAsteroid(vec3 pos) {
+		if (length(pos) < 50) return false;
 
 		float size{ ASTEROID_SIZE_MIN + (rand() % 1000) / 999.0f * (ASTEROID_SIZE_MAX - ASTEROID_SIZE_MIN) };
 
