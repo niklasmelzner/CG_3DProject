@@ -57,7 +57,7 @@ int main(void)
 	renderer->setProjection(radians(60.0f), 0.1f, 1000.0f);
 
 	// add Asteroid-ModelBases to WorldManager
-	worldManager->addAsteroidModel(loadIndexedSTLModel("bunny-decimated.stl"), 1);
+	worldManager->addAsteroidModel(loadIndexedSTLModel("./models/Bunny/bunny-decimated.stl"), 1);
 	worldManager->addAsteroidModel(loadModel(loadOBJ("./models/asteroids/asteroid1/asteroid.obj", true)), 50);
 	worldManager->addAsteroidModel(loadModel(loadOBJ("./models/asteroids/asteroid2/asteroid.obj", true)), 15);
 	worldManager->addAsteroidModel(loadModel(loadOBJ("./models/asteroids/asteroid3/asteroid.obj", true)), 30);
