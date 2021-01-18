@@ -1,0 +1,14 @@
+# Blender MTL File: 'Rock1.blend'
+# Material Count: 2
+
+newmtl Material
+Ns 13.725490
+Ka 0.120000 0.120000 0.12000
+Kd 0.640000 0.700000 0.70000
+Ks 0.007937 0.007937 0.007937
+Ni 1.000000
+d 1.000000
+illum 2
+map_Disp Rock-Texture-Surface.bmp
+map_Kd Rock-Texture-Surface.bmp
+
