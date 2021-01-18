@@ -5,7 +5,7 @@ namespace eng {
 	shared_ptr<MTLConfig> defaultMTLConfig{ make_shared<MTLConfig>(0.2,0.2,0.2) };
 
 	BMP::BMP(string filename) {
-		// external source http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
+		// inspiration: http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
 
 		unsigned char header[54];
 		FILE* file{ fopen(filename.c_str(),"rb") };
@@ -111,7 +111,7 @@ namespace eng {
 	}
 
 	shared_ptr<OBJ> loadOBJ(string filename, bool calcNormals) {
-		// external source http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
+		// inspiration http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
 		vector<int> vertexIndices, texIndices, normalIndices;
 		vector<vec3> obj_vertices{};
 		vector<vec2> obj_texCoords{};
