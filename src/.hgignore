@@ -1,7 +1,6 @@
 syntax: glob
 
 *.dll
-*.exe
 build/*
 bin-*/*
 distrib/build_*/*
@@ -12,4 +11,3 @@ screenshot.bmp
 Thumbs.db
 glob:OpenGL-tutorial_v*
 relre:.*\.blend.+
-glob:*.mtl
