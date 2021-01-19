@@ -28,7 +28,8 @@ void main(){
 
 	fragPos = vec3(M*vec4(vertexPosition,1));
 
-	mat4 normalMatrix=Minv;
+	//mat4 normalMatrix=Minv;
+	mat4 normalMatrix=transpose(inverse(M));
 
 	normal = normalize(vec3(normalMatrix * vec4(normalIn,1.0)));
 	

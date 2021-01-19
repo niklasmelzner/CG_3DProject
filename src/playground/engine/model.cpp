@@ -201,12 +201,12 @@ namespace eng {
 		indexDataChanged = true;
 	}
 
-	void ModelBase::loadMTL(shared_ptr<MTL> mtl, GLuint programID, GLuint hasTextureId) {
+	void ModelBase::loadMTL(shared_ptr<MTL> mtl, GLuint programID, GLuint hasTextureId,GLuint texArrayId) {
 		bool hasTexture = mtl->mapDiffuse.get() != nullptr;
 		if (hasTexture) {
 			glBindTexture(GL_TEXTURE_2D, mtl->mapDiffuse->textureId);
 			glBindBuffer(GL_ARRAY_BUFFER, texturebuffer);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+			glVertexAttribPointer(texArrayId, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 			glUniform1f(hasTextureId, 1.0);
 		}
 		else glUniform1f(hasTextureId, 0.0);
@@ -246,7 +246,7 @@ namespace eng {
 		vector<int>* indices{ &mtlConfig->indices };
 		for (int i = 0, size = indices->size(); i < size; i++) {
 			shared_ptr<MTL> mtl{ mtlConfig->get(indices->at(i)) };
-			loadMTL(mtl, programID, attrIds->hasTexture);
+			loadMTL(mtl, programID, attrIds->hasTexture,attrIds->texCoordArray);
 			bool textureActive = mtl != nullptr;
 
 			if (textureActive) glEnableVertexAttribArray(attrIds->texCoordArray);
@@ -314,7 +314,7 @@ namespace eng {
 	void ModelInstance::update(GLuint programID, shared_ptr<AttrIds> attrIds) {
 		mat4 m{ transformationStack.get() };
 		glUniformMatrix4fv(attrIds->m, 1, GL_FALSE, &(m)[0][0]);
-		glUniformMatrix4fv(attrIds->mInv, 1, GL_FALSE, &(glm::transpose(glm::inverse(m)))[0][0]);
+		//glUniformMatrix4fv(attrIds->mInv, 1, GL_FALSE, &(glm::transpose(glm::inverse(m)))[0][0]);
 
 		glUniform1i(attrIds->effectCount, effects.size());
 		for (int i = 0; i < effects.size(); i++) {

@@ -214,7 +214,7 @@ namespace eng {
 
 		void addTriangle(GLuint i0, GLuint i1, GLuint i2);
 
-		void loadMTL(shared_ptr<MTL> mtl, GLuint programID, GLuint hasTextureId);
+		void loadMTL(shared_ptr<MTL> mtl, GLuint programID, GLuint hasTextureId, GLuint texArrayId);
 
 		void update(GLuint programID, shared_ptr<AttrIds> attrIds);
 

@@ -7,8 +7,11 @@
 #include "engine/renderer.h"
 #include "engine/world.h"
 
-static const int ASTEROID_COUNT{ 200 }, ASTEROID_SIZE_MIN{ 5 }, ASTEROID_SIZE_MAX{ 20 };
-static const vec3 WORLD_SIZE{ 110 + ASTEROID_SIZE_MAX,110,110 };
+//weak pc: static const int ASTEROID_COUNT{ 50 }, WORLD_LENGTH{50};
+static const int ASTEROID_COUNT{ 200 }, WORLD_LENGTH{110};
+
+static const int ASTEROID_SIZE_MIN{ 5 }, ASTEROID_SIZE_MAX{ 20 };
+static const vec3 WORLD_SIZE{ WORLD_LENGTH + ASTEROID_SIZE_MAX,WORLD_LENGTH,WORLD_LENGTH };
 static const vec3 WORLD_OFFSET{ WORLD_SIZE.x / 2 - ASTEROID_SIZE_MAX,0,0 };
 static const int MAX_COLLISIONS{5};
 

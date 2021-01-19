@@ -87,6 +87,7 @@ namespace eng {
 					path = path.length() == 0 ? fName : path + "/" + fName;
 
 					shared_ptr<BMP> bmp{ loadBMP(path) };
+					std::cout << path << ":" << bmp->width << "," << bmp->height << "\n";
 					mtl->mapDiffuse = bmp;
 				}
 			}
