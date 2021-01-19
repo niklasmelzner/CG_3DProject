@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "modellOADER.h";
+#include "modelLoader.h";
 
 // Include GLEW
 #include <GL/glew.h>
